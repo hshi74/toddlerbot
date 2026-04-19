@@ -84,6 +84,11 @@ Refer to [this page](https://hshi74.github.io/toddlerbot/software/01_setup.html)
     ```
     python toddlerbot/policies/run_policy.py --policy replay --path motion/push_up_2xc.lz4 --vis view
     ```
+    (on MacOS)
+    ```
+    mjpython toddlerbot/policies/run_policy.py --policy replay --path motion/push_up_2xc.lz4 --vis view
+    ```
+    
 
     to see the push up motion in MuJoCo. You're very welcome to contribute your keyframe animation to our repository by
     submitting a pull request!
