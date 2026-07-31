@@ -2,8 +2,6 @@
 
 ![ToddlerBot](docs/_static/banner.png)
 
-[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/rwXqdvVtqh)
-
 |  | Paper | Website | Tweet |
 |:--|:-----:|:-------:|:-----:|
 | **Locomotion Beyond Feet** (2026) | [arXiv](https://arxiv.org/abs/2601.03607) | [Site](https://locomotion-beyond-feet.github.io/) | [X](https://x.com/taeyang___11/status/2009359173302276391) |
