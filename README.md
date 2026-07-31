@@ -2,6 +2,8 @@
 
 ![ToddlerBot](docs/_static/banner.png)
 
+[![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/rwXqdvVtqh)
+
 |  | Paper | Website | Tweet |
 |:--|:-----:|:-------:|:-----:|
 | **Locomotion Beyond Feet** (2026) | [arXiv](https://arxiv.org/abs/2601.03607) | [Site](https://locomotion-beyond-feet.github.io/) | [X](https://x.com/taeyang___11/status/2009359173302276391) |
@@ -124,7 +126,9 @@ We truly appreciate your feedback and will do our best to address it!
 
 ## Community
 
-See [our website](https://toddlerbot.github.io/) for links to join the Discord or WeChat community!
+Join our [Discord](https://discord.gg/rwXqdvVtqh) to chat with the community!
+
+See [our website](https://toddlerbot.github.io/) for the WeChat community link.
 
 ## Contributing  
 
