@@ -128,8 +128,6 @@ We truly appreciate your feedback and will do our best to address it!
 
 Join our [Discord](https://discord.gg/rwXqdvVtqh) to chat with the community!
 
-See [our website](https://toddlerbot.github.io/) for the WeChat community link.
-
 ## Contributing  
 
 We welcome contributions from the community! To contribute, just follow the standard practice:
