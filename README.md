@@ -124,7 +124,7 @@ We truly appreciate your feedback and will do our best to address it!
 
 ## Community
 
-See [our website](https://toddlerbot.github.io/) for links to join the Discord or WeChat community!
+Join our <img src="https://cdn.simpleicons.org/discord/5865F2" height="14" alt=""> [Discord](https://discord.gg/rwXqdvVtqh) to chat with the community!
 
 ## Contributing  
 
