@@ -48,6 +48,30 @@ The depth module uses [FoundationStereo](https://github.com/NVlabs/FoundationSte
 
    If you need a different configuration or are using a different JetPack version, follow the [FoundationStereo ONNX/TensorRT instructions](https://github.com/NVlabs/FoundationStereo/?tab=readme-ov-file#onnxtensorrt-inference-experimental).
 
+   **Option C: Export an ExecuTorch Program (.pte)**
+
+   [ExecuTorch](https://pytorch.org/executorch) is PyTorch's solution for deploying models on devices. A `.pte` file can hold a TensorRT engine exported directly from PyTorch, with no ONNX export, `onnx-tensorrt` or `pycuda`, so this option does not need the setup script in step 2. It needs newer Python, PyTorch and NumPy versions than the pinned ToddlerBot environment, so it uses a separate conda environment. On a Jetson it needs JetPack 7, so it does not work on the JetPack 6.1 setup above. So far it was tested only on Linux x86_64 with an NVIDIA A100. FoundationStereo needs the changes from [this pull request](https://github.com/NVlabs/FoundationStereo/pull/248). The commands below check them out, and keep working after they are merged. Run them from the ToddlerBot checkout, on the machine that will run the robot (the TensorRT engine inside is built for that GPU and TensorRT version):
+
+   ```bash
+   conda create -y -n toddlerbot-pte python=3.12 && conda activate toddlerbot-pte
+   pip install "torch_tensorrt[executorch]==2.15.*" torchvision opencv-python onnxruntime open3d \
+       colorama line_profiler omegaconf timm einops scipy trimesh imageio joblib pandas
+   pip install --no-deps -e .  # ToddlerBot itself, without its pinned versions
+   git clone https://github.com/NVlabs/FoundationStereo ../FoundationStereo
+   git -C ../FoundationStereo fetch origin pull/248/head
+   git -C ../FoundationStereo checkout FETCH_HEAD
+   # Download a checkpoint into ../FoundationStereo/pretrained_models/ as its README describes.
+   XFORMERS_DISABLED=1 python toddlerbot/depth/export_foundation_stereo.py \
+       --fs-dir ../FoundationStereo \
+       --ckpt ../FoundationStereo/pretrained_models/11-33-40/model_best_bp2.pth \
+       --height 96 --width 128 --valid-iters 16 \
+       --output toddlerbot/depth/models/foundation_stereo_vits_96x128_16.pte
+   ```
+
+   Run the depth module from this environment too, and pass the `.pte` wherever an engine file is expected, for example `--engine toddlerbot/depth/models/foundation_stereo_vits_96x128_16.pte`. `examples/test_foundation_stereo.py` and `toddlerbot/skill_classifier/run_foundation_stereo.py` also need `mujoco`, `mediapy` and `pupil-apriltags`, and the second one also needs `pyzmq`.
+
+   The `.pte` runs in FP32, while FoundationStereo's TensorRT instructions (Option B) build FP16 engines. It may be slower than them on a Jetson; this was not measured.
+
 3. **Calibration and Rectification Parameters**
 
    The system requires calibration and rectification parameters for your stereo camera setup. Generate these using:
