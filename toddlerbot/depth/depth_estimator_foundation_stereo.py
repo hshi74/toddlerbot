@@ -14,7 +14,12 @@ import tensorrt as trt
 import torch
 
 # Import the required modules (assuming they are available)
-from onnx_tensorrt import tensorrt_engine
+try:
+    from onnx_tensorrt import tensorrt_engine
+except ModuleNotFoundError as e:  # only .engine and .plan files need onnx-tensorrt
+    if e.name != "onnx_tensorrt":
+        raise
+    tensorrt_engine = None
 import onnxruntime as ort
 
 from toddlerbot.depth.depth_utils import (
@@ -90,17 +95,34 @@ def get_model_input_shape(model_path):
                 break
 
         raise ValueError("Could not extract input shape from TensorRT engine")
+
+    elif model_path.endswith(".pte"):
+        from executorch.runtime import Runtime
+
+        program = Runtime.get().load_program(model_path)
+        shape = program.metadata("forward").input_tensor_meta(0).sizes()
+        return shape[2], shape[3]
     else:
         raise ValueError(f"Unsupported model format: {model_path}")
 
 
 def get_engine_model(model_path):
     """Load TensorRT engine model like in run_demo_tensorrt.py"""
+    if tensorrt_engine is None:
+        raise ImportError("Loading .engine or .plan files needs onnx-tensorrt")
     with open(model_path, "rb") as file:
         engine_data = file.read()
     engine = trt.Runtime(TRT_LOGGER).deserialize_cuda_engine(engine_data)
     engine = tensorrt_engine.Engine(engine)
     return engine
+
+
+def get_pte_model(model_path):
+    """Load the forward method of an ExecuTorch program (.pte)."""
+    import torch_tensorrt_executorch_runtime  # noqa: F401  (registers the TensorRT backend)
+    from executorch.runtime import Runtime
+
+    return Runtime.get().load_program(model_path).load_method("forward")
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,7 +144,7 @@ class DepthEstimatorFoundationStereo:
         self,
         calib_params_path,
         rec_params_path,
-        engine_path,  # Can be .onnx, .engine, or .plan file
+        engine_path,  # Can be .onnx, .engine, .plan, or .pte file
         calib_width,
         calib_height,
     ):
@@ -138,7 +160,7 @@ class DepthEstimatorFoundationStereo:
         """
         Initialize model like in run_demo_tensorrt.py - auto-detect format.
         Args:
-            model_path: Path to the model file (.onnx, .engine, or .plan).
+            model_path: Path to the model file (.onnx, .engine, .plan, or .pte).
         Returns:
             None
         """
@@ -158,9 +180,13 @@ class DepthEstimatorFoundationStereo:
             self.model = get_engine_model(model_path)
             self.model_type = "engine"
             log("TensorRT engine model loaded", header="DepthEstimator")
+        elif model_path.endswith(".pte"):
+            self.model = get_pte_model(model_path)
+            self.model_type = "pte"
+            log("ExecuTorch program loaded", header="DepthEstimator")
         else:
             raise ValueError(
-                f"Unknown model format {model_path}. Supported formats: .onnx, .engine, .plan"
+                f"Unknown model format {model_path}. Supported formats: .onnx, .engine, .plan, .pte"
             )
 
     def _init_calibration(
@@ -272,6 +298,8 @@ class DepthEstimatorFoundationStereo:
             left_disp = self.model.run(
                 None, {"left": left_tensor.numpy(), "right": right_tensor.numpy()}
             )[0]
+        elif self.model_type == "pte":
+            left_disp = self.model.execute((left_tensor, right_tensor))[0].numpy()
         else:  # engine or plan
             left_disp = self.model.run([left_tensor.numpy(), right_tensor.numpy()])[0]
         torch.cuda.synchronize()
